@@ -128,6 +128,79 @@ A production-quality backend system that ingests vehicle images, processes them 
 
 ---
 
+## Project Structure
+
+```
+intelligent-media-pipeline/
+├── prisma/
+│   ├── schema.prisma              # Database schema (Image, AnalysisResult, ProcessingAttempt)
+│   └── migrations/                # Auto-generated SQL migrations
+├── public/
+│   └── index.html                 # Dashboard UI (upload, results, analytics)
+├── src/
+│   ├── analysis/                  # 10 Analysis Modules
+│   │   ├── index.ts               # Barrel export
+│   │   ├── blurDetection.ts       # Laplacian variance via sharp convolve
+│   │   ├── brightnessAnalysis.ts  # Histogram luminance + contrast stats
+│   │   ├── dimensionValidation.ts # Min resolution check
+│   │   ├── duplicateDetection.ts  # Perceptual hash + hamming distance
+│   │   ├── exifAnalysis.ts        # Camera metadata consistency
+│   │   ├── numberPlateValidation.ts # Indian plate regex + OCR correction
+│   │   ├── ocrExtraction.ts       # Tesseract.js text extraction
+│   │   ├── photoOfPhotoDetection.ts # Border, moiré, glare detection
+│   │   ├── screenshotDetection.ts # Multi-signal heuristic detection
+│   │   └── tamperingDetection.ts  # ELA + quadrant noise analysis
+│   ├── config/
+│   │   └── index.ts               # Centralized env config with validation
+│   ├── controllers/
+│   │   └── imageController.ts     # Express route handlers
+│   ├── db/
+│   │   └── prisma.ts              # Singleton Prisma client
+│   ├── middleware/
+│   │   ├── errorHandler.ts        # Global error handler (JSON responses)
+│   │   ├── rateLimiter.ts         # Upload rate limiting
+│   │   └── upload.ts              # Multer config (type/size validation)
+│   ├── queue/
+│   │   ├── connection.ts          # Redis connection options
+│   │   ├── imageQueue.ts          # BullMQ queue with retry/backoff
+│   │   └── index.ts               # Barrel export
+│   ├── routes/
+│   │   ├── analyticsRoutes.ts     # GET /api/analytics
+│   │   └── imageRoutes.ts         # CRUD routes for images
+│   ├── services/
+│   │   └── imageService.ts        # Business logic (upload, status, results, retry, analytics)
+│   ├── storage/
+│   │   └── index.ts               # Storage abstraction (local disk, swappable to S3)
+│   ├── types/
+│   │   └── index.ts               # TypeScript interfaces
+│   ├── utils/
+│   │   └── logger.ts              # Pino structured JSON logger
+│   ├── workers/
+│   │   └── analysisWorker.ts      # BullMQ worker (runs 10 checks, persists results)
+│   ├── app.ts                     # Express app setup (middleware, routes, health)
+│   ├── server.ts                  # API server entry point
+│   └── worker.ts                  # Worker process entry point
+├── tests/
+│   ├── unit/
+│   │   ├── analysis.test.ts       # 11 tests for analysis modules
+│   │   └── numberPlate.test.ts    # 9 tests for plate validation
+│   └── integration/
+│       └── api.test.ts            # API endpoint tests
+├── .env.example                   # Environment variable template
+├── .gitignore
+├── Dockerfile                     # API server container
+├── Dockerfile.worker              # Worker container
+├── docker-compose.yml             # Full stack (postgres, redis, api, worker)
+├── jest.config.js                 # Test configuration
+├── package.json
+├── tsconfig.json
+├── SETUP.md                       # Detailed setup instructions
+├── WORKFLOW.md                    # Development workflow log
+└── README.md                      # This file
+```
+
+---
+
 ## Setup & Running
 
 ### Prerequisites
