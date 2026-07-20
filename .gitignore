@@ -1,0 +1,11 @@
+node_modules/
+dist/
+uploads/
+.env
+*.log
+coverage/
+.nyc_output/
+prisma/*.db
+prisma/migrations/**/migration_lock.toml
+test_vehicle.jpg
+tests/fixtures/

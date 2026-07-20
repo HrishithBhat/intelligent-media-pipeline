@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pipeline
+      POSTGRES_PASSWORD: pipeline123
+      POSTGRES_DB: media_pipeline
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pipeline -d media_pipeline"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for BullMQ
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://pipeline:pipeline123@postgres:5432/media_pipeline?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      UPLOAD_DIR: /app/uploads
+      WORKER_CONCURRENCY: 3
+      JOB_TIMEOUT_MS: 120000
+      JOB_MAX_RETRIES: 3
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/server.js"
+
+  # Background Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://pipeline:pipeline123@postgres:5432/media_pipeline?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      UPLOAD_DIR: /app/uploads
+      WORKER_CONCURRENCY: 3
+      JOB_TIMEOUT_MS: 120000
+      JOB_MAX_RETRIES: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:

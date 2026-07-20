@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Intelligent Media Processing Pipeline - Vehicle Image Analysis Dashboard">
+  <title>Media Processing Pipeline — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a2e;
+      --bg-card-hover: #22223a;
+      --border-color: #2a2a40;
+      --text-primary: #e8e8f0;
+      --text-secondary: #9090a8;
+      --text-muted: #606078;
+      --accent: #6c5ce7;
+      --accent-light: #a29bfe;
+      --success: #00e676;
+      --success-bg: rgba(0, 230, 118, 0.1);
+      --warning: #ffa726;
+      --warning-bg: rgba(255, 167, 38, 0.1);
+      --error: #ef5350;
+      --error-bg: rgba(239, 83, 80, 0.1);
+      --info: #42a5f5;
+      --info-bg: rgba(66, 165, 245, 0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header .health-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .health-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+    .health-dot.down {
+      background: var(--error);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: var(--transition);
+    }
+    .stat-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    .stat-value.accent { color: var(--accent-light); }
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.error { color: var(--error); }
+
+    /* Upload Section */
+    .upload-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    .upload-section h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .upload-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(108, 92, 231, 0.05);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+    .upload-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    .upload-text strong {
+      color: var(--accent-light);
+    }
+
+    /* Upload progress */
+    .upload-progress {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+    .upload-progress.active {
+      display: block;
+    }
+    .progress-bar-track {
+      height: 6px;
+      background: var(--border-color);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    /* Results Section */
+    .results-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    .results-section h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    /* Search */
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .search-bar input {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition);
+    }
+    .search-bar input:focus {
+      border-color: var(--accent);
+    }
+    .btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      border: none;
+      color: white;
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(108, 92, 231, 0.4);
+    }
+    .btn:active { transform: translateY(0); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent-light);
+    }
+    .btn-outline:hover {
+      background: rgba(108, 92, 231, 0.1);
+      box-shadow: none;
+    }
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 0.8rem;
+    }
+
+    /* Image Result Card */
+    .result-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 12px;
+      transition: var(--transition);
+    }
+    .result-card:hover {
+      background: var(--bg-card-hover);
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .result-filename {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-pending { background: var(--info-bg); color: var(--info); }
+    .status-processing { background: var(--warning-bg); color: var(--warning); }
+    .status-completed { background: var(--success-bg); color: var(--success); }
+    .status-failed { background: var(--error-bg); color: var(--error); }
+
+    /* Check Results Grid */
+    .checks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .check-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 0.82rem;
+    }
+    .check-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .check-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .check-indicator.pass { background: var(--success); }
+    .check-indicator.fail { background: var(--error); }
+    .check-meta {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      margin-top: 4px;
+    }
+    .score-bar {
+      height: 4px;
+      background: var(--border-color);
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    .score-bar-fill.high { background: var(--success); }
+    .score-bar-fill.medium { background: var(--warning); }
+    .score-bar-fill.low { background: var(--error); }
+
+    .composite-score {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+    .composite-score-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .composite-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      min-width: 300px;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease;
+    }
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--error); }
+    .toast.info { border-left: 4px solid var(--info); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+
+    @media (max-width: 768px) {
+      .container { padding: 16px; }
+      .header { padding: 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .checks-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>🚗 Media Processing Pipeline</h1>
+    <div class="health-badge">
+      <span class="health-dot" id="healthDot"></span>
+      <span id="healthText">Checking...</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-label">Total Images</div>
+        <div class="stat-value accent" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value success" id="statCompleted">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Processing</div>
+        <div class="stat-value warning" id="statProcessing">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Failed</div>
+        <div class="stat-value error" id="statFailed">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Processing Time</div>
+        <div class="stat-value accent" id="statAvgTime">—</div>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="upload-section">
+      <h2>📤 Upload Vehicle Image</h2>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/tiff,image/bmp">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">
+          <strong>Click to upload</strong> or drag and drop<br>
+          JPEG, PNG, WebP, TIFF, BMP — Max 10MB
+        </div>
+      </div>
+      <div class="upload-progress" id="uploadProgress">
+        <div style="font-size: 0.85rem; color: var(--text-secondary);" id="uploadStatusText">Uploading...</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-section">
+      <h2>📋 Analysis Results</h2>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Enter image ID to look up results...">
+        <button class="btn" id="searchBtn" onclick="lookupImage()">Look Up</button>
+      </div>
+      <div id="resultsContainer">
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <p>Upload an image or enter an image ID to view results</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const API = window.location.origin;
+
+    // Health check
+    async function checkHealth() {
+      try {
+        const res = await fetch(`${API}/health`);
+        const data = await res.json();
+        const dot = document.getElementById('healthDot');
+        const text = document.getElementById('healthText');
+        if (data.status === 'ok') {
+          dot.className = 'health-dot';
+          text.textContent = 'All systems operational';
+        } else {
+          dot.className = 'health-dot down';
+          text.textContent = `Status: ${data.status}`;
+        }
+      } catch (e) {
+        document.getElementById('healthDot').className = 'health-dot down';
+        document.getElementById('healthText').textContent = 'Connection error';
+      }
+    }
+
+    // Analytics
+    async function loadAnalytics() {
+      try {
+        const res = await fetch(`${API}/api/analytics`);
+        const data = await res.json();
+        document.getElementById('statTotal').textContent = data.totalImages || 0;
+        document.getElementById('statCompleted').textContent = data.statusBreakdown?.completed || 0;
+        document.getElementById('statProcessing').textContent =
+          (data.statusBreakdown?.processing || 0) + (data.statusBreakdown?.pending || 0);
+        document.getElementById('statFailed').textContent = data.statusBreakdown?.failed || 0;
+        document.getElementById('statAvgTime').textContent =
+          data.averageProcessingTimeMs ? `${(data.averageProcessingTimeMs / 1000).toFixed(1)}s` : '—';
+      } catch (e) {
+        console.error('Analytics error:', e);
+      }
+    }
+
+    // Upload
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) uploadFile(fileInput.files[0]);
+    });
+
+    async function uploadFile(file) {
+      const progress = document.getElementById('uploadProgress');
+      const statusText = document.getElementById('uploadStatusText');
+      const bar = document.getElementById('progressBarFill');
+      
+      progress.classList.add('active');
+      statusText.textContent = `Uploading ${file.name}...`;
+      bar.style.width = '30%';
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      try {
+        const res = await fetch(`${API}/api/images/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (res.ok) {
+          bar.style.width = '100%';
+          statusText.textContent = `✅ Uploaded! ID: ${data.id} — Processing started...`;
+          showToast(`Image uploaded: ${data.id}`, 'success');
+          
+          // Poll for results
+          pollForResults(data.id);
+          loadAnalytics();
+        } else {
+          throw new Error(data.error || data.message || 'Upload failed');
+        }
+      } catch (e) {
+        statusText.textContent = `❌ Upload failed: ${e.message}`;
+        bar.style.width = '0%';
+        showToast(`Upload failed: ${e.message}`, 'error');
+      }
+
+      // Reset after 5s
+      setTimeout(() => {
+        progress.classList.remove('active');
+        bar.style.width = '0%';
+        fileInput.value = '';
+      }, 5000);
+    }
+
+    // Poll for results
+    async function pollForResults(imageId) {
+      const maxAttempts = 60;
+      let attempt = 0;
+
+      const interval = setInterval(async () => {
+        attempt++;
+        if (attempt > maxAttempts) {
+          clearInterval(interval);
+          showToast('Processing taking too long. Check back later.', 'info');
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API}/api/images/${imageId}/status`);
+          const data = await res.json();
+
+          if (data.status === 'completed') {
+            clearInterval(interval);
+            showToast('Analysis complete!', 'success');
+            await displayResults(imageId);
+            loadAnalytics();
+          } else if (data.status === 'failed') {
+            clearInterval(interval);
+            showToast('Analysis failed. Check failure details.', 'error');
+            await displayResults(imageId);
+            loadAnalytics();
+          }
+        } catch (e) {
+          // continue polling
+        }
+      }, 3000);
+    }
+
+    // Look up image
+    async function lookupImage() {
+      const id = document.getElementById('searchInput').value.trim();
+      if (!id) return;
+      await displayResults(id);
+    }
+
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') lookupImage();
+    });
+
+    // Display results
+    async function displayResults(imageId) {
+      const container = document.getElementById('resultsContainer');
+
+      try {
+        const res = await fetch(`${API}/api/images/${imageId}/results`);
+        
+        if (res.status === 404) {
+          container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">❓</div><p>Image not found: ${imageId}</p></div>`;
+          return;
+        }
+
+        const data = await res.json();
+
+        if (res.status === 409) {
+          // Processing not done yet
+          container.innerHTML = `
+            <div class="result-card">
+              <div class="result-header">
+                <span class="result-filename">${imageId}</span>
+                <span class="status-badge status-${data.status}">${data.status}</span>
+              </div>
+              <p style="color: var(--text-secondary); font-size: 0.9rem;">${data.message}</p>
+            </div>`;
+          return;
+        }
+
+        let checksHTML = '';
+        if (data.results && data.results.length > 0) {
+          checksHTML = `<div class="checks-grid">`;
+          for (const r of data.results) {
+            const scoreClass = r.score >= 0.7 ? 'high' : r.score >= 0.4 ? 'medium' : 'low';
+            let detailText = r.details;
+            try {
+              const parsed = JSON.parse(r.details);
+              detailText = parsed.message || r.details;
+            } catch { /* use raw string */ }
+            
+            checksHTML += `
+              <div class="check-item">
+                <div class="check-name">
+                  <span class="check-indicator ${r.passed ? 'pass' : 'fail'}"></span>
+                  ${formatCheckName(r.check)}
+                </div>
+                <div class="check-meta">
+                  Score: ${(r.score * 100).toFixed(0)}% | Confidence: ${(r.confidence * 100).toFixed(0)}%
+                </div>
+                <div class="score-bar">
+                  <div class="score-bar-fill ${scoreClass}" style="width: ${r.score * 100}%"></div>
+                </div>
+                <div class="check-meta" style="margin-top: 6px; font-size: 0.72rem; line-height: 1.4;">
+                  ${truncate(detailText, 160)}
+                </div>
+              </div>`;
+          }
+          checksHTML += `</div>`;
+        }
+
+        const compositeHTML = data.compositeScore !== null ? `
+          <div class="composite-score">
+            <div>
+              <div class="composite-score-value" style="color: ${data.compositeScore >= 0.7 ? 'var(--success)' : data.compositeScore >= 0.4 ? 'var(--warning)' : 'var(--error)'}">
+                ${(data.compositeScore * 100).toFixed(0)}%
+              </div>
+              <div class="composite-label">Composite Score</div>
+            </div>
+            <div>
+              <div class="composite-score-value" style="font-size: 1.1rem; color: var(--accent-light);">
+                ${(data.compositeConfidence * 100).toFixed(0)}%
+              </div>
+              <div class="composite-label">Average Confidence</div>
+            </div>
+            <div style="margin-left: auto;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">
+                ${data.results?.filter(r => r.passed).length}/${data.results?.length} checks passed
+              </span>
+            </div>
+          </div>` : '';
+
+        container.innerHTML = `
+          <div class="result-card">
+            <div class="result-header">
+              <span class="result-filename">${data.originalFilename || imageId}</span>
+              <span class="status-badge status-${data.status}">${data.status}</span>
+            </div>
+            ${checksHTML}
+            ${compositeHTML}
+          </div>`;
+
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Error loading results: ${e.message}</p></div>`;
+      }
+    }
+
+    function formatCheckName(name) {
+      return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function truncate(str, len) {
+      return str.length > len ? str.substring(0, len) + '…' : str;
+    }
+
+    // Toast notifications
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // Init
+    checkHealth();
+    loadAnalytics();
+    setInterval(checkHealth, 30000);
+    setInterval(loadAnalytics, 15000);
+  </script>
+</body>
+</html>
