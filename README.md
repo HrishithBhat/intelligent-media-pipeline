@@ -606,6 +606,4 @@ npm run test:integration
 
 ---
 
-## License
 
-MIT
