@@ -234,3 +234,37 @@ A complete chronological record of every step taken to build the Intelligent Med
 - Updated `.gitignore` with test fixtures and temp files
 - Committed all files with descriptive commit message
 - Created `WORKFLOW.md` (this file), `SETUP.md`, added file structure to `README.md`
+
+---
+
+## Phase 12: Sample Image Testing
+
+### 12.1 Upload & Process 3 Sample Images
+- Uploaded `image_1.jpeg`, `image_2.jpeg`, `image_3.jpeg` via `curl` to the running API
+- Worker processed all 3 images successfully with 10/10 checks each
+- Results:
+  - **Image 1**: Composite Score 66.4%, 7/10 passed (720×1280px, sharp, good brightness)
+  - **Image 2**: Composite Score 68.3%, 7/10 passed (960×1280px, sharp, good brightness)
+  - **Image 3**: Composite Score 64.7%, 7/10 passed (720×1280px, sharp, good brightness)
+- Common findings across all 3 images: no EXIF metadata, screenshot-like aspect ratios, no valid Indian number plate detected
+
+### 12.2 Dashboard Screenshots
+- Captured analysis result screenshots for all 3 images from the dashboard UI
+- Saved to `submission_screenshots/` folder for assignment submission
+
+---
+
+## Phase 13: Production Deployment
+
+### 13.1 Railway Deployment
+- Pushed code to GitHub: `https://github.com/HrishithBhat/intelligent-media-pipeline`
+- Deployed to Railway.app using `railway up` CLI (bypassed GitHub webhook queue)
+- Railway auto-detected `docker-compose.yml` and created 4 services: postgres, redis, api, worker
+- Generated public domain: `https://intelligent-media-pipeline-production.up.railway.app`
+- Verified live deployment: dashboard accessible, health check returning `ok`, uploads functional
+
+### 13.2 Final Documentation
+- Updated `README.md` with live demo link
+- Updated `SUBMISSION.md` with deployed link and GitHub link
+- Updated `WORKFLOW.md` with deployment and testing phases
+- Final git commit and push to GitHub

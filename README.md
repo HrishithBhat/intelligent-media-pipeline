@@ -2,6 +2,10 @@
 
 A production-quality backend system that ingests vehicle images, processes them asynchronously through 10 analysis checks, and reports structured, uncertainty-aware results. Built for field-uploaded vehicle images that may have real-world quality issues.
 
+🔗 **Live Demo:** [https://intelligent-media-pipeline-production.up.railway.app/dashboard](https://intelligent-media-pipeline-production.up.railway.app/dashboard)
+📦 **GitHub:** [https://github.com/HrishithBhat/intelligent-media-pipeline](https://github.com/HrishithBhat/intelligent-media-pipeline)
+🩺 **Health Check:** [https://intelligent-media-pipeline-production.up.railway.app/health](https://intelligent-media-pipeline-production.up.railway.app/health)
+
 ---
 
 ## Table of Contents
