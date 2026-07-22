@@ -7,12 +7,13 @@ import { config } from '../config';
  */
 function createRedisConnection(): IORedis {
     const conn = config.redis.url
-        ? new IORedis(config.redis.url, { maxRetriesPerRequest: null, lazyConnect: true })
+        ? new IORedis(config.redis.url, { maxRetriesPerRequest: null, lazyConnect: true, family: 0 })
         : new IORedis({
             host: config.redis.host,
             port: config.redis.port,
             maxRetriesPerRequest: null,
             lazyConnect: true,
+            family: 0,
         });
 
     conn.on('error', (err) => {
@@ -27,5 +28,5 @@ function createRedisConnection(): IORedis {
 export const redisConnection = createRedisConnection();
 
 export const redisOptions = config.redis.url
-    ? { connection: new IORedis(config.redis.url, { maxRetriesPerRequest: null }) }
-    : { host: config.redis.host, port: config.redis.port };
+    ? { connection: new IORedis(config.redis.url, { maxRetriesPerRequest: null, family: 0 }) }
+    : { host: config.redis.host, port: config.redis.port, family: 0 };
