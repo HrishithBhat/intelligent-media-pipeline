@@ -22,6 +22,7 @@ export const config = {
     },
 
     redis: {
+        url: process.env.REDIS_URL || '',
         host: envStr('REDIS_HOST', 'localhost'),
         port: envInt('REDIS_PORT', 6379),
     },

@@ -1,0 +1,63 @@
+databases:
+  - name: media-pipeline-db
+    plan: free
+    databaseName: media_pipeline
+    user: pipeline
+
+  - name: media-pipeline-redis
+    plan: free
+    ipAllowList: []
+
+services:
+  - type: web
+    name: media-pipeline-api
+    plan: free
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: sh -c "npx prisma migrate deploy && node dist/server.js"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: media-pipeline-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: media-pipeline-redis
+          type: redis
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: WORKER_CONCURRENCY
+        value: "3"
+      - key: JOB_TIMEOUT_MS
+        value: "120000"
+      - key: JOB_MAX_RETRIES
+        value: "3"
+
+  - type: worker
+    name: media-pipeline-worker
+    plan: free
+    runtime: docker
+    dockerfilePath: ./Dockerfile.worker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: media-pipeline-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: media-pipeline-redis
+          type: redis
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: WORKER_CONCURRENCY
+        value: "3"
+      - key: JOB_TIMEOUT_MS
+        value: "120000"
+      - key: JOB_MAX_RETRIES
+        value: "3"
