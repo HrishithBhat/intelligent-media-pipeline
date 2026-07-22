@@ -1,17 +1,30 @@
-import IORedis from 'ioredis';
+import IORedis, { RedisOptions } from 'ioredis';
 import { config } from '../config';
 
 /**
  * Shared Redis connection used by both the API server and workers.
- * Supports both REDIS_URL (cloud) and REDIS_HOST+REDIS_PORT (local).
+ * Includes lazyConnect to prevent Railway boots from crashing if Redis isn't fully ready.
  */
-export const redisConnection = config.redis.url
-    ? new IORedis(config.redis.url, { maxRetriesPerRequest: null })
-    : new IORedis({
-        host: config.redis.host,
-        port: config.redis.port,
-        maxRetriesPerRequest: null,
+function createRedisConnection(): IORedis {
+    const conn = config.redis.url
+        ? new IORedis(config.redis.url, { maxRetriesPerRequest: null, lazyConnect: true })
+        : new IORedis({
+            host: config.redis.host,
+            port: config.redis.port,
+            maxRetriesPerRequest: null,
+            lazyConnect: true,
+        });
+
+    conn.on('error', (err) => {
+        console.error('Redis connection error (non-fatal):', err.message);
     });
+
+    conn.connect().catch(() => { });
+
+    return conn;
+}
+
+export const redisConnection = createRedisConnection();
 
 export const redisOptions = config.redis.url
     ? { connection: new IORedis(config.redis.url, { maxRetriesPerRequest: null }) }

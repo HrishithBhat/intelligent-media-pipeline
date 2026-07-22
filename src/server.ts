@@ -1,6 +1,15 @@
 import app from './app';
 import { config } from './config';
 import { logger } from './utils/logger';
+import { execSync } from 'child_process';
+
+try {
+    logger.info('Running database migrations...');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    logger.info('Database migrations applied successfully.');
+} catch (err) {
+    logger.error({ err }, 'Failed to run database migrations');
+}
 
 const server = app.listen(config.port, () => {
     logger.info(
