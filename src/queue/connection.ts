@@ -28,5 +28,5 @@ function createRedisConnection(): IORedis {
 export const redisConnection = createRedisConnection();
 
 export const redisOptions = config.redis.url
-    ? { connection: new IORedis(config.redis.url, { maxRetriesPerRequest: null, family: 0 }) }
+    ? new IORedis(config.redis.url, { maxRetriesPerRequest: null, family: 0 })
     : { host: config.redis.host, port: config.redis.port, family: 0 };
