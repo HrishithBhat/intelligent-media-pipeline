@@ -7,7 +7,7 @@
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
     "dev:worker": "tsx watch src/worker.ts",
-    "start": "node dist/server.ts",
+    "start": "node dist/worker.js & node dist/server.js",
     "start:worker": "node dist/worker.js",
     "test": "jest --coverage --forceExit --detectOpenHandles",
     "test:unit": "jest --testPathPattern=tests/unit --forceExit",
